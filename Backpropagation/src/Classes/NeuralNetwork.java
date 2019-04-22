@@ -5,8 +5,6 @@
  */
 package Classes;
 
-import com.sun.glass.ui.View;
-import com.sun.org.apache.xml.internal.security.Init;
 import java.util.Random;
 
 /**
@@ -105,8 +103,8 @@ public class NeuralNetwork {
         this.hiddenLayerError = new double[neuronInHidden];
 
         //para cada peso de la capa debe haber un valor delta
-        this.hiddenLayerDelta = new double[neuronInHidden * (inputsAmount + 1)];
-        this.outputLayerDelta = new double[neuronsInOutput * (neuronInHidden + 1)];
+        this.hiddenLayerDelta = new double[neuronInHidden];
+        this.outputLayerDelta = new double[neuronsInOutput];
 
         //inicializar los arreglos de resultados de cada capa
         
@@ -187,6 +185,8 @@ public class NeuralNetwork {
         double outputLayerOptimalError = 2;
         int max = this.inputs.length - 1;
         
+        double[] entrada;
+        
 
         Random r = new Random();
 
@@ -205,7 +205,7 @@ public class NeuralNetwork {
             }
 
             System.out.println("index value : " + index);
-            double[] entrada = this.inputs[index];
+            entrada = this.inputs[index];
 
             System.out.println("Evaluando entrada ........... ");
             printArray(entrada);
@@ -219,7 +219,7 @@ public class NeuralNetwork {
             printArray(this.hiddenLayerNet);
             printArray(this.hiddenLayerResult);
 
-            //es uno la ultima entrada por ser el BIAS
+            //es uno la ultima entrada por ser el BIAS, se agrega además de las salidas de las neuronas
             this.hiddenLayerResult[this.hiddenLayerResult.length-1]=1;
             
             System.out.println("Calculando net y salida de la capa de salida");
@@ -237,11 +237,11 @@ public class NeuralNetwork {
 
             //capaSalidaErrorOptimo = Math.abs(this.outputLayerErrorSummatory(this.errorCapaSalida));
             outputLayerOptimalError = opSolver.outputLayerErrorSummation(this.outputLayerError);
-
+            
             System.out.println("Error en capa salida es optimo? : ");
             System.out.println(outputLayerOptimalError);
             // si la tasa de errro aún no es la deseada hay que ajustar pesos
-            if (outputLayerOptimalError > this.tolerance || outputLayerOptimalError < (this.tolerance - this.tolerance)) {
+            if ( ! this.opSolver.endTrainingForThisInput(outputLayerOptimalError, this.outputLayerError)) {
 
                 /**
                  * el resultado ya no es optimo para la entrada que referencia
@@ -251,11 +251,12 @@ public class NeuralNetwork {
 
                 System.out.println("Error en capa salida no es optimo ");
                 System.out.println("Actualizar pesos");
+                this.opSolver.calculateHiddenLayerError(this.hiddenLayerResult, this.hiddenLayerError, this.outputLayerError, this.outputLayer);
                 
-                opSolver.upateHiddenLayerWeights(this.hiddenLayer, this.hiddenLayerResult, this.outputLayer, this.outputLayerError, this.inputs);
+                this.opSolver.updateOutputLayerWeights(this.outputLayer, this.hiddenLayerResult,this.outputLayerError);
+                 
+                this.opSolver.upateHiddenLayerWeights(this.hiddenLayer, entrada, hiddenLayerError);
                 
-                opSolver.updateOutputLayerWeights(this.outputLayer, this.outputLayerError, this.outputLayerResult);
-
                 System.out.println("Pesos actualizados");
 
             } 

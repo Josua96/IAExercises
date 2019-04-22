@@ -5,8 +5,6 @@
  */
 package Classes;
 
-import com.sun.javafx.css.CalculatedValue;
-
 /**
  *
  * @author Josua
@@ -66,11 +64,30 @@ public class OperationsSolver {
         int limit =  outputLayer.length;
         for (int i = 0; i < limit; i++) {
 
-            layerError[i] = wanted - outputLayer[i];
+            layerError[i] = (wanted - outputLayer[i]) * outputLayer[i]*( 1 - outputLayer[i]);
 
         }
 
         return;
+    }
+    
+    public boolean endTrainingForThisInput (double ep,double [] outputLayerError){
+        int limit = outputLayerError.length;
+        System.out.println("");
+        System.out.println("Finalizar entrenamiento");
+        for (int i = 0; i < limit; i++) {
+            System.out.println("");
+            System.out.println("Error de la neurona número " + i);
+            System.out.println(outputLayerError[i]);
+            //con que una neurona de salidad tenga un error mayor o igual al calculado con la formula de ep
+            if (outputLayerError[i] >= ep){
+                return false;
+            }
+            
+        }
+        
+        return true;
+        
     }
     
     /********************************************************************************
@@ -93,18 +110,26 @@ public class OperationsSolver {
         
     }
     
-    public double calculateHiddenLayerDelta(int neuronIndex,int weightIndex,double salida,double[][]outputLayer,
-                                            double [] outputLayerError,double[][]inputs) {
+    
+    public double calculateHiddenLayerDelta (int neuronIndex,double inputValue,double []hiddenLayerError) {
 
-        return  this.alpha * 
-                (inputs[neuronIndex][weightIndex] * (1 - salida) * this.summationOutputLayerErrorWeights(neuronIndex, outputLayerError, outputLayer))
-                * salida;
+        return  this.alpha * hiddenLayerError[neuronIndex]  * inputValue;
 
     }
     
+    public void calculateHiddenLayerError(double[]layerResults,double []hiddenLayerError,
+            double []outputLayerError,double [][]outputLayer){
+        int limit = hiddenLayerError.length;
+        
+        for (int j = 0; j < limit; j++) {
+            hiddenLayerError[j] =  layerResults[j] * (1-layerResults[j]) * this.summationOutputLayerErrorWeights(j, outputLayerError, outputLayer);
+            
+        }
+    }
     
-    public void upateHiddenLayerWeights(double [][]hiddenLayer , double [] hiddenLayerResult,
-                                        double [][]outputLayer,double []outputLayerError,double [][]inputs) {
+    
+    
+    public void upateHiddenLayerWeights(double [][]hiddenLayer ,double[]input,double[] hiddenLayerError) {
         int rows = hiddenLayer.length;
         int indexForDelta=0;
         int columns;
@@ -114,7 +139,7 @@ public class OperationsSolver {
             for (int i = 0; i < columns; i++) {
 
                 hiddenLayer[j][i] = hiddenLayer[j][i] +
-                        this.calculateHiddenLayerDelta(j,i,hiddenLayerResult[j],outputLayer,outputLayerError,inputs);
+                        this.calculateHiddenLayerDelta(j,input[i],hiddenLayerError);
 
             }
 
@@ -128,12 +153,12 @@ public class OperationsSolver {
     * update weights of output layer
     * *****************************************************************************/
     
-     public double calculateOutputLayerDelta(int index, double output,double[] outputLayerError) {
+     public double calculateOutputLayerDelta(int index, double[] outputLayerError,double input) {
 
-        return this.alpha * outputLayerError[index] * output;
+        return this.alpha * outputLayerError[index] * input;
     }
     
-    public void updateOutputLayerWeights(double[][] outputLayer,double [] outputLayerError,double[] output) {
+    public void updateOutputLayerWeights(double[][] outputLayer,double[] inputs,double [] outputLayerError) {
         int rows =  outputLayer.length;
         int columns;
         for (int j = 0; j < rows; j++) {
@@ -141,7 +166,7 @@ public class OperationsSolver {
             columns = outputLayer[j].length;
             for (int i = 0; i < columns; i++) {
 
-                outputLayer[j][i] = outputLayer[j][i] + calculateOutputLayerDelta(j, output[j],outputLayerError);
+                outputLayer[j][i] = outputLayer[j][i] + calculateOutputLayerDelta(j,outputLayerError,inputs[i]);
 
             }
 
