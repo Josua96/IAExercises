@@ -19,11 +19,12 @@ public class NeuralNetwork {
 
     private double[][] inputs;
 
-    private double[] results;
+    private double[][] results;
 
     private double alpha;
 
     private int inputsAmount;
+    private int outputsAmount;
 
     private double[] hiddenLayerNet;
     private double[] outputLayerNet;
@@ -51,16 +52,37 @@ public class NeuralNetwork {
      */
     private double max;
     private double min;
+    
+    //numero de iteraciones a realizar si el entrenamiento es por cantidad de iteraciones
+    private int iterations;
 
-    public NeuralNetwork(double tolerance) {
+    public NeuralNetwork(double tolerance, int numberOfIterations) {
         this.tolerance = tolerance;
         this.alpha = 0.25;
         dataR = new DataRequestor();
         opSolver = new OperationsSolver(this.alpha);
         this.min = -2.0;
         this.max = 2.0;
+        this.iterations= numberOfIterations;
+        
 
     }
+
+    public double[][] getHiddenLayer() {
+        return hiddenLayer;
+    }
+
+    public double[][] getOutputLayer() {
+        return outputLayer;
+    }
+
+    public void setIterations(int iterations) {
+        this.iterations = iterations;
+    }
+    
+    
+    
+    
 
     
 
@@ -87,10 +109,12 @@ public class NeuralNetwork {
             }
         }
     }
+    
+    
 
     public void initHiddenAndOutputLayer(int inputsAmount, int neuronInHidden, int neuronsInOutput) {
         //los pesos deben calzar con la cantidad de inputs +1
-        this.hiddenLayer = new double[neuronInHidden][inputsAmount + 1];
+        this.hiddenLayer = new double[neuronInHidden][inputsAmount];
         // los pesos en cada neurona deben calzar con la cantidad de neuronas de la capa oculta +1
         this.outputLayer = new double[neuronsInOutput][neuronInHidden + 1];
 
@@ -113,7 +137,7 @@ public class NeuralNetwork {
         this.outputLayerResult = new double[neuronsInOutput];
     }
 
-    public void setTrainingData(double[][] inputs, double[] results) {
+    public void setTrainingData(double[][] inputs, double[][] results) {
         this.inputs = inputs;
         this.results = results;
     }
@@ -126,11 +150,11 @@ public class NeuralNetwork {
         int neuronsInHiddenLayer = dataR.requestNumberToUser("Ingrese el número de neuronas"
                 + " en la capa oculta: ");
 
-        int neuronsInOutputLayer = dataR.requestNumberToUser("Ingrese el número de neuronas "
+        this.outputsAmount = dataR.requestNumberToUser("Ingrese el número de neuronas "
                 + " en la capa de salida: ");
 
 
-        this.initHiddenAndOutputLayer(this.inputsAmount, neuronsInHiddenLayer, neuronsInOutputLayer);
+        this.initHiddenAndOutputLayer(this.inputsAmount+1, neuronsInHiddenLayer, this.outputsAmount);
 
         this.initLayerWeights(this.hiddenLayer);
 
@@ -141,7 +165,8 @@ public class NeuralNetwork {
     }
 
     public void getTrainingData() {
-        this.setTrainingData(dataR.buildInputsData(this.inputsAmount+1), dataR.buildResultsData());
+        double[][] temp = dataR.buildInputsData(this.inputsAmount+1);
+        this.setTrainingData(temp, dataR.buildResultsData(this.inputsAmount,this.outputsAmount,temp.length));
     }
     
     
@@ -154,7 +179,7 @@ public class NeuralNetwork {
             System.out.print(" ");
 
         }
-        System.out.println("");
+        System.out.println("Fin impresión de arreglo");
     }
 
     public boolean inArray(boolean valor, boolean[] array) {
@@ -178,8 +203,108 @@ public class NeuralNetwork {
 
         }
     }
+    
+    public void trainNeuralNetworkEndWithIteration(){
+        int index;
+        double outputLayerOptimalError = 2;
+        int max = this.inputs.length - 1;
+        
+        double[] entrada;
+        int i =0;
 
-    public void trainNeuralNetwork() {
+        Random r = new Random();
+
+        /**
+         * hasta que para cada entrada el error sea menor al grado de tolerancia
+         * definido por la variable tolerancia
+         */
+        while (i <= this.iterations) {
+
+            System.out.println("Iteracion número.. " + String.valueOf(i));
+
+            index = r.nextInt(this.inputs.length);
+
+            System.out.println("index value : " + index);
+            entrada = this.inputs[index];
+
+            System.out.println("Evaluando entrada ........... ");
+            printArray(entrada);
+
+            System.out.println("");
+            System.out.println("Calculando net y salida de la capa oculta");
+            printArray(this.hiddenLayer[0]);
+            opSolver.calculateNet(entrada, this.hiddenLayer,this.hiddenLayerNet);
+            opSolver.calculateOutput(this.hiddenLayerNet, this.hiddenLayerResult);
+            
+
+            printArray(this.hiddenLayerNet);
+            printArray(this.hiddenLayerResult);
+
+            //es uno la ultima entrada por ser el BIAS, se agrega además de las salidas de las neuronas
+            this.hiddenLayerResult[this.hiddenLayerResult.length-1]=1;
+            
+            System.out.println("Calculando net y salida de la capa de salida");
+            opSolver.calculateNet(this.hiddenLayerResult, this.outputLayer, this.outputLayerNet);
+            opSolver.calculateOutput(this.outputLayerNet, this.outputLayerResult);
+
+            printArray(this.outputLayerNet);
+            printArray(this.outputLayerResult);
+
+            System.out.println("Calculando error capa salida");
+            
+            opSolver.calculateOutputLayerError(this.results[index],this.outputLayerError,this.outputLayerResult);           
+
+            printArray(this.outputLayerError);
+
+            //capaSalidaErrorOptimo = Math.abs(this.outputLayerErrorSummatory(this.errorCapaSalida));
+            outputLayerOptimalError = opSolver.outputLayerErrorSummation(this.outputLayerError);
+            
+            System.out.println("Error en capa salida es optimo? : ");
+            System.out.println(outputLayerOptimalError);
+            // si la tasa de errro aún no es la deseada hay que ajustar pesos
+            if ( !this.opSolver.endTrainingForThisInput(outputLayerOptimalError, this.outputLayerError)) {
+
+                /**
+                 * Ajuste de pesos
+                 */
+
+                System.out.println("Error en capa salida no es optimo ");
+                System.out.println("Actualizar pesos");
+                this.opSolver.calculateHiddenLayerError(this.hiddenLayerResult, this.hiddenLayerError, this.outputLayerError, this.outputLayer);
+                
+                this.opSolver.upateHiddenLayerWeights(this.hiddenLayer, entrada, hiddenLayerError);
+                                
+                this.opSolver.updateOutputLayerWeights(this.outputLayer, this.hiddenLayerResult,this.outputLayerError);
+                 
+
+                
+                System.out.println("Pesos actualizados");
+
+            } 
+            
+
+            System.out.println("Final de la iteracion ... " + String.valueOf(i));
+            i++;
+        }
+    }
+
+    
+    public void trainNeuralNetwork(){
+        
+        // 0 = for iterations 1 = for error
+        int trainingWay = Integer.parseInt(dataR.requestStringToUser("Do you want ending "
+                + "for number of iterations or per error: "));
+        
+        if (trainingWay == 0){
+            this.trainNeuralNetworkEndWithIteration();
+        }
+        else{
+            this.trainNeuralNetworkEndWithError();
+        }
+        
+    }
+
+    public void trainNeuralNetworkEndWithError() {
 
         int index;
         double outputLayerOptimalError = 2;
@@ -231,7 +356,7 @@ public class NeuralNetwork {
 
             System.out.println("Calculando error capa salida");
             
-            opSolver.calcularOutputLayerError(this.results[index],this.outputLayerError,this.outputLayerResult);           
+            opSolver.calculateOutputLayerError(this.results[index],this.outputLayerError,this.outputLayerResult);           
 
             printArray(this.outputLayerError);
 
@@ -253,9 +378,11 @@ public class NeuralNetwork {
                 System.out.println("Actualizar pesos");
                 this.opSolver.calculateHiddenLayerError(this.hiddenLayerResult, this.hiddenLayerError, this.outputLayerError, this.outputLayer);
                 
+                this.opSolver.upateHiddenLayerWeights(this.hiddenLayer, entrada, hiddenLayerError);
+                
                 this.opSolver.updateOutputLayerWeights(this.outputLayer, this.hiddenLayerResult,this.outputLayerError);
                  
-                this.opSolver.upateHiddenLayerWeights(this.hiddenLayer, entrada, hiddenLayerError);
+                
                 
                 System.out.println("Pesos actualizados");
 
@@ -301,7 +428,7 @@ public class NeuralNetwork {
 
             System.out.println("Calculando error capa salida");
             
-            opSolver.calcularOutputLayerError(this.results[0],this.outputLayerError,this.outputLayerResult);           
+            opSolver.calculateOutputLayerError(this.results[0],this.outputLayerError,this.outputLayerResult);           
 
             printArray(this.outputLayerError);
 

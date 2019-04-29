@@ -5,7 +5,11 @@
  */
 package backpropagation;
 
+import Classes.FileAccessController;
 import Classes.NeuralNetwork;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -17,27 +21,90 @@ public class Backpropagation {
      * @param args the command line arguments
      */
     
-    
-    public static void main(String[] args) {
-        // TODO code application logic here
+    public static void trainNeuralNetwork(double [][] inputs,int hiddenNeurons,double [][]results, NeuralNetwork net,int iterations){
         
-        /***************************************************
-        double [][] entradas = { {0,1},{1,0},{1,1},{0,0}};
-        double [] resultados = {1,1,0,0};
-        * 
-        * XOR Examples
-        * 
-        * EL VALOR BIAS DEBE especificarse cono el último elemento del patrón en cada entrada
-        *****************************************************/
+        System.out.println("Cantidas de entradas ... "+ String.valueOf(inputs[0].length));
+        System.out.println("Cantidas de entradas ... "+ String.valueOf(hiddenNeurons));
+        System.out.println("Cantidas de entradas ... "+ String.valueOf(results[0].length));
+        net.initHiddenAndOutputLayer(inputs[0].length,hiddenNeurons , results[0].length );
         
-        NeuralNetwork neuralN = new NeuralNetwork(0.25);
-        neuralN.initMethod();
-        neuralN.trainNeuralNetwork();
-        neuralN.validate(0);
-        neuralN.validate(1);
-        neuralN.validate(2);
-        neuralN.validate(3);
+        net.initLayerWeights(net.getHiddenLayer());
+        net.initLayerWeights(net.getOutputLayer());
+        net.setTrainingData(inputs, results);
+        net.setIterations(iterations);
+        net.trainNeuralNetworkEndWithIteration();
+        net.validate(0);
+        net.validate(1);
+        net.validate(2);
+        net.validate(3);
         
     }
     
+    public static void main(String[] args) {
+        // TODO code application logic here
+
+        NeuralNetwork neuralN = new NeuralNetwork(0.25, 5000);
+        FileAccessController fileInteraction = new FileAccessController();
+        /**
+         * *************************************************
+         * double [][] entradas = { {0,1},{1,0},{1,1},{0,0}}; double []
+         * resultados = {1,1,0,0};
+         *
+         * XOR Examples
+         *
+         * EL VALOR BIAS DEBE especificarse cono el último elemento del patrón
+         * en cada entrada ***************************************************
+         */
+        if (args.length > 0) {
+            try {
+                if(args.length == 1){
+                    
+                    System.out.println("A validar");
+                    return;
+                }
+                /*
+                se requiere conocer
+                0 la ruta a la carpeta donde están los patrones de entrenamiento.
+                1 -a cantidad de bits de cada entrada
+                2 la ruta de la carpeta donde está el archivo de resultados esperados
+                3 la cantidad de bits de para cada respuesta esperada
+                4 neuronas en capa oculta
+                5 cantidad iteraciones
+                6 cargar pesos predeterminados o no true sí, false = no
+                 */
+                double[][] inputs = fileInteraction.getTrainingData(args[0], Integer.parseInt(args[1]));
+                double[][] results = fileInteraction.getResultsData(args[2],inputs.length, Integer.parseInt(args[3]));
+                
+                
+                System.out.println("Entradas");
+                for (int i = 0; i < inputs.length; i++) {
+                    neuralN.printArray(inputs[i]);
+                    
+                }
+                
+                System.out.println("Salidas");
+                for (int i = 0; i < results.length; i++) {
+                    neuralN.printArray(results[i]);
+                    
+                }
+                
+                trainNeuralNetwork(inputs,Integer.parseInt(args[4]),results,neuralN,Integer.parseInt(args[5]));
+
+                
+            } catch (IOException ex) {
+                Logger.getLogger(Backpropagation.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        } else {
+
+            neuralN.initMethod();
+            neuralN.trainNeuralNetwork();
+            neuralN.validate(0);
+            neuralN.validate(1);
+            neuralN.validate(2);
+            neuralN.validate(3);
+        }
+
+    }
+
 }

@@ -26,7 +26,7 @@ public class OperationsSolver {
         }
         return (1.0 / 2.0) * result;
     }
-    
+    //revisada
     public void calculateNet(double[] inputs, double[][] layer, double[] netResult) {
 
         double netSummation = 0;
@@ -50,21 +50,21 @@ public class OperationsSolver {
     }
     
     public void calculateOutput(double[] netResults, double[] layerResults) {
-        int limit = layerResults.length;
+        int limit = netResults.length;
         
         for (int i = 0; i < limit; i++) {
-            layerResults[i] = 1 / (1 + Math.pow(Math.E, -layerResults[i]));
+            layerResults[i] = 1 / (1 + Math.pow(Math.E, -netResults[i]));
         }
 
         return;
     }
     
-    public void calcularOutputLayerError(double wanted, double[] layerError, double[] outputLayer) {
+    public void calculateOutputLayerError(double []wanted, double[] layerError, double[] outputLayer) {
 
         int limit =  outputLayer.length;
         for (int i = 0; i < limit; i++) {
 
-            layerError[i] = (wanted - outputLayer[i]) * outputLayer[i]*( 1 - outputLayer[i]);
+            layerError[i] = (wanted[i] - outputLayer[i]) * outputLayer[i]*( 1 - outputLayer[i]);
 
         }
 
@@ -80,7 +80,7 @@ public class OperationsSolver {
             System.out.println("Error de la neurona número " + i);
             System.out.println(outputLayerError[i]);
             //con que una neurona de salidad tenga un error mayor o igual al calculado con la formula de ep
-            if (outputLayerError[i] >= ep){
+            if (Math.abs(outputLayerError[i]) >= ep){
                 return false;
             }
             
