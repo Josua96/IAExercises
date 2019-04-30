@@ -1,0 +1,13 @@
+******************************
+Entrenamiento
+******************************
+
+java -jar Backpropagation.jar training 2 results 1 2 5000 1
+
+******************************
+Validacion
+******************************
+
+java -jar Backpropagation.jar test 2 
+
+

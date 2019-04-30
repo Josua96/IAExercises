@@ -79,12 +79,20 @@ public class NeuralNetwork {
     public void setIterations(int iterations) {
         this.iterations = iterations;
     }
-    
-    
+
+    public void setInputs(double[][] inputs) {
+        this.inputs = inputs;
+    }
     
     
 
-    
+    public void setHiddenLayer(double[][] hiddenLayer) {
+        this.hiddenLayer = hiddenLayer;
+    }
+
+    public void setOutputLayer(double[][] outputLayer) {
+        this.outputLayer = outputLayer;
+    }
 
     public double getRandomWeight() {
         return this.min + Math.random() * (this.max - this.min);
@@ -401,14 +409,13 @@ public class NeuralNetwork {
     }
     
     //para está implementación se evalua una entrada en especifica proporciona para el entrenamiento
-    public double validate(int index) {
+    public double[] validate(int index) {
             System.out.println("");
             System.out.println("");
             System.out.println("Validating ------------------------------------");
             System.out.println("Evaluando entrada ........... ");
             printArray(this.inputs[index]);
-
-            System.out.println("");
+         
             System.out.println("Calculando net y salida de la capa oculta");
             opSolver.calculateNet(this.inputs[index], this.hiddenLayer,this.hiddenLayerNet);
             opSolver.calculateOutput(this.hiddenLayerNet, this.hiddenLayerResult);
@@ -426,19 +433,7 @@ public class NeuralNetwork {
             printArray(this.outputLayerNet);
             printArray(this.outputLayerResult);
 
-            System.out.println("Calculando error capa salida");
-            
-            opSolver.calculateOutputLayerError(this.results[0],this.outputLayerError,this.outputLayerResult);           
-
-            printArray(this.outputLayerError);
-
-            //capaSalidaErrorOptimo = Math.abs(this.outputLayerErrorSummatory(this.errorCapaSalida));
-             double outputLayerOptimalError = opSolver.outputLayerErrorSummation(this.outputLayerError);
-
-            System.out.println("Error en capa salida es optimo? : ");
-            System.out.println(outputLayerOptimalError);
-
-        return outputLayerOptimalError;
+        return this.outputLayerResult;
     }
 
 }
