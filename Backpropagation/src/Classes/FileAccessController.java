@@ -40,14 +40,16 @@ public class FileAccessController {
         return lines;
     }
 
-    public double[] getfileBits(File file, boolean addBias) throws FileNotFoundException, IOException {
+    public double[] getfileBits(File file, boolean addBias, int bitAmounts) throws FileNotFoundException, IOException {
         String[] lines = getFileLines(file);
         double[] bits;
+        
         //para el bias
         if (addBias) {
-            bits = new double[lines.length + 1];
+            bits = new double[bitAmounts + 1];
+            
         } else {
-            bits = new double[lines.length];
+            bits = new double[bitAmounts];
         }
 
         int limit = lines.length;
@@ -59,6 +61,7 @@ public class FileAccessController {
             line = line.replace("\n", "").replace("\r", "");
             System.out.println("Checking line");
             System.out.println(line);
+            System.out.println(line.length());
             lineLimit = line.length();
             for (int j = 0; j < lineLimit; j++) {
 
@@ -92,7 +95,7 @@ public class FileAccessController {
         for (int i = 0; i < limit; i++) {
             File file = files[i];
             System.out.println(file.getName());
-            data[i] = this.getfileBits(file, true);
+            data[i] = this.getfileBits(file, true, bitsAmount);
             System.out.println(String.valueOf(data[i][0]));
             System.out.println(String.valueOf(data[i][1]));
             System.out.println(String.valueOf(data[i][2]));

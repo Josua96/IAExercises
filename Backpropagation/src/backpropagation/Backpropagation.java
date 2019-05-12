@@ -126,17 +126,22 @@ public class Backpropagation {
                 double[][] inputs = fileInteraction.getTrainingData(args[0], Integer.parseInt(args[1]));
                 double[][] results = fileInteraction.getResultsData(args[2], inputs.length, Integer.parseInt(args[3]));
 
+                
                 System.out.println("Entradas");
+                /*
                 for (int i = 0; i < inputs.length; i++) {
                     neuralN.printArray(inputs[i]);
 
                 }
+                */
 
                 System.out.println("Salidas");
+                /*
                 for (int i = 0; i < results.length; i++) {
                     neuralN.printArray(results[i]);
 
                 }
+                */
 
                 trainNeuralNetwork(inputs, Integer.parseInt(args[4]), results, neuralN, Integer.parseInt(args[5]), loadWeights);
 

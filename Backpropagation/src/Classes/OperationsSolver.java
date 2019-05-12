@@ -74,9 +74,9 @@ public class OperationsSolver {
     public boolean endTrainingForThisInput (double ep,double [] outputLayerError){
         int limit = outputLayerError.length;
         System.out.println("");
-        System.out.println("Finalizar entrenamiento");
+     //   System.out.println("Finalizar entrenamiento");
         for (int i = 0; i < limit; i++) {
-            System.out.println("");
+       //     System.out.println("");
             System.out.println("Error de la neurona número " + i);
             System.out.println(outputLayerError[i]);
             //con que una neurona de salidad tenga un error mayor o igual al calculado con la formula de ep
